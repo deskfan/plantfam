@@ -49,20 +49,13 @@ class Care(Resource):
         Session.configure(bind=engine)
         session = Session()
 
-
         query = session.query(PlantHistory).\
             join(PlantInventory).\
             join(PlantSpecies).\
             join(PlantCareType).\
             filter(PlantInventory.site_user_id==1).all()
 
-
-        my_list = []
-        for row in query:
-            x = row.to_json()
-            my_list.append(x)
-
-            x = json.dumps(my_list)
+        x = jsonify([row.to_json() for row in query])
 
         return x
 
