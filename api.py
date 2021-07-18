@@ -48,32 +48,29 @@ class Inventory(Resource):
 
 
 class Care(Resource):
-#    care_args = {'user_id': fields.Int(required=True)}   
-#    @use_args(care_args)    
+    care_args = {'user_id': fields.Int(required=True),
+                'species_id': fields.Int(required=False)}   
     @app.route("/Care")
-    def get_history():
+    @use_args(care_args, location='query')    
+    def get_history(args):
+
+        filters =  [PlantInventory.site_user_id==args["user_id"]]
+
+        #todo, find a better pattern for this optional field/filter
+        try:
+            filters.append(PlantInventory.plant_species_id==args["species_id"])
+        except:
+            pass
 
         query = session.query(PlantHistory).\
             join(PlantInventory).\
             join(PlantSpecies).\
             join(PlantCareType).\
-            filter(PlantInventory.site_user_id==1).all()
-#            filter(PlantInventory.site_user_id==args["user_id"]).all()
+            filter(*filters)
 
-        x = jsonify([row.to_json() for row in query])
+        response = jsonify([row.to_json() for row in query])
 
-        return x
-
-#app.add_resource(Inventory, '/Inventory')
-#api.add_resource(Care, '/Care')
-
-# This error handler is necessary for usage with Flask-RESTful
-#@parser.error_handler
-#def handle_request_parsing_error(err, req, schema, *, error_status_code, error_headers):
-#    """webargs error handler that uses Flask-RESTful's abort function to return
-#    a JSON error response to the client.
-#    """
-#    abort(error_status_code, errors=err.messages)
+        return response
 
 if __name__ == '__main__':
     app.run(debug=True)
