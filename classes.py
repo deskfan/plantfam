@@ -1,10 +1,7 @@
-from sqlalchemy import create_engine #, MetaData, Table, select, insert
-from sqlalchemy import Column, Integer, String, ForeignKey #, Sequence
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.sql.sqltypes import Date
-import json
 
 
 Base = declarative_base()
@@ -20,7 +17,7 @@ class PlantSpecies(Base):
                             self.plant_species_id, self.plant_botanical_name, self.plant_common_name)
 
     def to_json(self):
-        return {'id':self.plant_species_id, 'bot':self.plant_botanical_name,'com':self.plant_common_name}
+        return {'species_id':self.plant_species_id, 'bot':self.plant_botanical_name,'com':self.plant_common_name}
 
 
 class PlantCareType(Base):
@@ -34,7 +31,7 @@ class PlantCareType(Base):
                             self.plant_care_type_id, self.plant_care_type, self.sort_order)
 
     def to_json(self):
-        return {'id':self.plant_care_type_id, 'type':self.plant_care_type,'sort':self.sort_order}
+        return {'care_type_id':self.plant_care_type_id, 'type':self.plant_care_type,'sort':self.sort_order}
 
 
 class PlantInventory(Base):
@@ -45,7 +42,7 @@ class PlantInventory(Base):
     species = relationship("PlantSpecies")
 
     def to_json(self):
-        return {'id':self.plant_inventory_id, 'species':self.species.to_json()}
+        return {'inventory_id':self.plant_inventory_id, 'species':self.species.to_json()}
 
 
 
@@ -65,4 +62,4 @@ class PlantHistory(Base):
                             self.plant_history_id, self.care, self.inventory.species)
 
     def to_json(self):
-        return {'id':self.plant_history_id,'species':self.inventory.to_json(),'care': self.care.to_json()}
+        return {'history_id':self.plant_history_id,'species':self.inventory.to_json(),'care': self.care.to_json()}
