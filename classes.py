@@ -6,6 +6,24 @@ from sqlalchemy.sql.sqltypes import Date
 
 Base = declarative_base()
 
+
+class Users(Base):
+    __tablename__ = 'site_users'
+    site_user_id = Column(Integer, primary_key=True)
+    email = Column(String)
+    username = Column(String)
+    hashed_password = Column(String)
+    public_id = Column(Integer)
+
+    def to_json(self):
+        return {'site_user_id':self.site_user_id, 
+            'username':self.username,
+            'email':self.email,
+            'hashed_password': self.hashed_password,
+            'public_id': self.public_id}
+
+
+
 class PlantSpecies(Base):
     __tablename__ = 'plant_species'
     plant_species_id = Column(Integer, primary_key=True)
