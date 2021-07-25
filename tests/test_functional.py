@@ -6,13 +6,9 @@ import jwt
 import requests
 from werkzeug.security import generate_password_hash
 
-from ..credentials import (
-    JWT_ALGORITHMS,
-    PASSWORD_HASH_METHOD,
-    SECRET_KEY,
-    TEST_PASSWORD,
-    TEST_USERNAME,
-)
+from testvars import (API_NAMESPACE, BASE_URL, JWT_ALGORITHMS,
+                      PASSWORD_HASH_METHOD, SECRET_KEY, TEST_PASSWORD,
+                      TEST_USERNAME)
 
 
 def user_setup(password):
@@ -22,7 +18,7 @@ def user_setup(password):
 
 
 def get_token():
-    url = "http://127.0.0.1:5000/plantfam/login"
+    url = f"{BASE_URL}/{API_NAMESPACE}/login"
     r = requests.get(url=url, auth=(TEST_USERNAME, TEST_PASSWORD))
     data = json.loads(r.text)
     token = data["token"]
@@ -32,24 +28,23 @@ def get_token():
 def get_response(endpoint):
     token = get_token()
     header = {"x-access-tokens": token}
-    url = f"http://127.0.0.1:5000/plantfam/{endpoint}"
+    url = f"{BASE_URL}/{API_NAMESPACE}/{endpoint}"
     x = requests.get(url=url, headers=header)
     return x.text
 
-
 def test_care_types():
-    x = get_response("CareTypes")
-    y = [type for type in x if type["care_type_id"] == 13]
-    return y
+    response = get_response("CareTypes")
+    care_type_list = json.loads(response)
+    care_type_item = [type for type in care_type_list if type["care_type_id"] == 13]
+    test_case = care_type_item[0]
+    assert len(care_type_list) >= 13
+    assert test_case["sort"] == 13
+    assert test_case["type"] == "Fertilizer Quarter"
 
 
 def test_species(token):
-
-    header = {"x-access-tokens": token}
-    url = "http://127.0.0.1:5000/plantfam/Species"
-    x = requests.get(url=url, headers=header)
-
-    return x.text
+    response = get_response("Species")
+    return response
 
 
 def decode_token(token):
@@ -60,10 +55,14 @@ def decode_token(token):
     print(datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S"))
 
 
-# token = get_token()
-# print(token)
-# decode_token(token)
+def main():
 
-x = test_care_types()
-print(x)
-print("hello")
+    # token = get_token()
+    # print(token)
+    # decode_token(token)
+
+    test_care_types()
+
+
+if __name__ == "__main__":
+    main()
