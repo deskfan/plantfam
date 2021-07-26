@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
+from classes import (PlantCareType, PlantHistory, PlantInventory, PlantSpecies,
+                     Users)
 from credentials import CONN_STR, JWT_ALGORITHMS, SECRET_KEY
 
 app = Flask(__name__)
@@ -80,6 +81,7 @@ def token_required(f):
         except:
             return jsonify({"message": "token is invalid"})
 
+        kwargs["current_user"] = current_user
         return f(current_user, *args, **kwargs)
 
     return decorator
@@ -122,8 +124,9 @@ class CareTypes(Resource):
     @token_required
     @ns.marshal_with(model_care)
     @ns.doc("care_types")
-    def get(self, args):
-        print(args)
+    def get(self, *args, **kwargs):
+        x = kwargs["current_user"].public_id
+        print("kwarginess", x)
         query = session.query(PlantCareType)
         response = [row.to_json() for row in query]
         return response
