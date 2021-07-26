@@ -6,9 +6,15 @@ import jwt
 import requests
 from werkzeug.security import generate_password_hash
 
-from testvars import (API_NAMESPACE, BASE_URL, JWT_ALGORITHMS,
-                      PASSWORD_HASH_METHOD, SECRET_KEY, TEST_PASSWORD,
-                      TEST_USERNAME)
+from .testvars import (
+    API_NAMESPACE,
+    BASE_URL,
+    JWT_ALGORITHMS,
+    PASSWORD_HASH_METHOD,
+    SECRET_KEY,
+    TEST_PASSWORD,
+    TEST_USERNAME,
+)
 
 
 def user_setup(password):
@@ -32,6 +38,7 @@ def get_response(endpoint):
     x = requests.get(url=url, headers=header)
     return x.text
 
+
 def test_care_types():
     response = get_response("CareTypes")
     care_type_list = json.loads(response)
@@ -42,9 +49,14 @@ def test_care_types():
     assert test_case["type"] == "Fertilizer Quarter"
 
 
-def test_species(token):
+def test_species():
     response = get_response("Species")
-    return response
+    species_list = json.loads(response)
+    species_item = [type for type in species_list if type["species_id"] == 8]
+    test_case = species_item[0]
+    assert len(species_list) >= 25
+    assert test_case["bot"] == "Peperomia prostrata"
+    assert test_case["com"] == "String Of Turtles"
 
 
 def decode_token(token):
@@ -53,16 +65,3 @@ def decode_token(token):
     print(decoded)
     ts = int(decoded["exp"])
     print(datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S"))
-
-
-def main():
-
-    # token = get_token()
-    # print(token)
-    # decode_token(token)
-
-    test_care_types()
-
-
-if __name__ == "__main__":
-    main()
