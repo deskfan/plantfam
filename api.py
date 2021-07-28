@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
+from classes import (PlantCareType, PlantHistory, PlantInventory, PlantSpecies,
+                     Users)
 from credentials import CONN_STR, JWT_ALGORITHMS, SECRET_KEY
 
 app = Flask(__name__)
@@ -171,13 +172,9 @@ class UserInventory(Resource):
     @ns.doc("user_inventory")
     def get(self, *args, **kwargs):
         user_id = kwargs["current_user"].site_user_id
-
         filters = [PlantInventory.site_user_id == user_id]
-
         query = session.query(PlantInventory).join(PlantSpecies).filter(*filters)
-
-        response = jsonify([row.to_json() for row in query])
-
+        response = [row.to_json() for row in query]
         return response
 
 

@@ -85,3 +85,18 @@ def test_history():
     assert len(history_list) >= 25
     assert test_case["species"]["inventory_id"] == 1
     assert test_case["species"]["species"]["bot"] == "Alocasia Black Velvet"
+
+
+def test_inventory():
+    response = get_response("UserInventory")
+    history_list = json.loads(response)
+    print(history_list)
+    #    history_item = [care for care in history_list if care["history_id"] == 7]
+    #    test_case = history_item[0]
+    #    assert len(history_list) >= 25
+    #    assert test_case["species"]["inventory_id"] == 1
+    #    assert test_case["species"]["species"]["bot"] == "Alocasia Black Velvet"
+    assert 1 == 1
+
+
+test_inventory()
