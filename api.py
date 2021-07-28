@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from functools import wraps
 
 import jwt
@@ -9,8 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from classes import (PlantCareType, PlantHistory, PlantInventory, PlantSpecies,
-                     Users)
+from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
 from credentials import CONN_STR, JWT_ALGORITHMS, SECRET_KEY
 
 app = Flask(__name__)
@@ -56,6 +56,25 @@ model_nested = api.model(
 
 
 user_fields = api.model("User", {"user_id": fields.Integer})
+
+
+@ns.route("/register")
+class Register(Resource):
+    def post(self):
+        data = request.get_json()
+        hashed_password = generate_password_hash(data["password"], method="sha256")
+
+        new_user = Users(
+            public_id=str(uuid.uuid4()),
+            username=data["username"],
+            hashed_password=hashed_password,
+            email=data["email"]
+            #            admin=False,
+        )
+        session.add(new_user)
+        session.commit()
+
+        return jsonify({"message": "registered successfully"})
 
 
 def token_required(f):

@@ -28,10 +28,19 @@ except:
     )
 
 
-def user_setup(password):
-    public_id = str(uuid.uuid4())
-    hashed_password = generate_password_hash(password, method=PASSWORD_HASH_METHOD)
-    return (public_id, hashed_password)
+def test_register_new_user():
+    url = f"{BASE_URL}/{API_NAMESPACE}/register"
+    data = json.dumps(
+        {
+            "username": "test_user_name",
+            "password": "test_pword",
+            "email": "moi@email.com",
+        }
+    )
+    header = {"Content-Type": "application/json"}
+    response = requests.post(url=url, headers=header, data=data)
+    assert response.status_code == 200
+    assert json.loads(response.text)["message"] == "registered successfully"
 
 
 def get_token():
