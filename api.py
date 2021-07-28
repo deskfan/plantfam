@@ -9,8 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from classes import (PlantCareType, PlantHistory, PlantInventory, PlantSpecies,
-                     Users)
+from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
 from credentials import CONN_STR, JWT_ALGORITHMS, SECRET_KEY
 
 app = Flask(__name__)
@@ -25,7 +24,7 @@ api = Api(
 
 ns = api.namespace("plantfam", description="Plant care operations")
 
-engine = create_engine(CONN_STR, echo=True)
+engine = create_engine(CONN_STR)  # , echo=True)
 Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
@@ -126,7 +125,6 @@ class CareTypes(Resource):
     @ns.doc("care_types")
     def get(self, *args, **kwargs):
         x = kwargs["current_user"].public_id
-        print("kwarginess", x)
         query = session.query(PlantCareType)
         response = [row.to_json() for row in query]
         return response
@@ -134,22 +132,22 @@ class CareTypes(Resource):
 
 @ns.route("/Species")
 class Species(Resource):
-    #    @token_required
+    @token_required
     @ns.marshal_with(model_species)
     @ns.doc("species")
-    def get(self):
+    def get(self, *args, **kwargs):
         query = session.query(PlantSpecies)
         response = [row.to_json() for row in query]
         return response
 
 
-@ns.route("/UserHistory/<user_id>")
-@ns.doc(params={"user_id": "A User ID"})
+@ns.route("/UserHistory")
 class UserHistory(Resource):
-    @ns.doc("user_history")
-    @ns.expect(user_fields)
+    @token_required
     @ns.marshal_with(model_nested)
-    def get(self, user_id):
+    @ns.doc("user_history")
+    def get(self, *args, **kwargs):
+        user_id = kwargs["current_user"].site_user_id
 
         filters = [PlantInventory.site_user_id == user_id]
 
@@ -166,19 +164,19 @@ class UserHistory(Resource):
         return response
 
 
-@ns.route("/UserInventory/<user_id>")
-@ns.doc(params={"user_id": "A User ID"})
+@ns.route("/UserInventory")
 class UserInventory(Resource):
-    @ns.doc("user_inventory")
-    @ns.expect(user_fields)
+    @token_required
     @ns.marshal_with(model_inventory)
-    def get(self, user_id):
+    @ns.doc("user_inventory")
+    def get(self, *args, **kwargs):
+        user_id = kwargs["current_user"].site_user_id
 
         filters = [PlantInventory.site_user_id == user_id]
 
         query = session.query(PlantInventory).join(PlantSpecies).filter(*filters)
 
-        response = [row.to_json() for row in query]
+        response = jsonify([row.to_json() for row in query])
 
         return response
 
