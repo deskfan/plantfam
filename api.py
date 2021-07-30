@@ -196,6 +196,20 @@ class UserInventory(Resource):
         response = [row.to_json() for row in query]
         return response
 
+    @token_required
+    @ns.doc("user_inventory_add")
+    def post(self, *args, **kwargs):
+        user_id = kwargs["current_user"].site_user_id
+        data = request.get_json()
+        print(data)
+        new_inventory = PlantInventory(
+            plant_species_id=data["species_id"], site_user_id=user_id
+        )
+
+        session.add(new_inventory)
+        session.commit()
+        return jsonify({"message": "new inventory added"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
