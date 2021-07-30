@@ -27,6 +27,8 @@ except:
         TEST_USERNAME,
     )
 
+token_held = ""
+
 
 def test_register_new_user():
     url = f"{BASE_URL}/{API_NAMESPACE}/register"
@@ -45,8 +47,12 @@ def test_register_new_user():
 
 def get_token():
     url = f"{BASE_URL}/{API_NAMESPACE}/login"
+    print(url)
     r = requests.get(url=url, auth=(TEST_USERNAME, TEST_PASSWORD))
+    print(r)
+    print(r.text)
     data = json.loads(r.text)
+
     token = data["token"]
     return token
 
@@ -58,11 +64,17 @@ def decode_token(token):
     print(datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S"))
 
 
-def get_response(endpoint):
-    token = get_token()
-    header = {"x-access-tokens": token}
+def get_response(endpoint, data=None, method="get"):
+    if token_held != "":
+        token = token_held
+    else:
+        token = get_token()
+    header = {"x-access-tokens": token, "Content-Type": "application/json"}
     url = f"{BASE_URL}/{API_NAMESPACE}/{endpoint}"
-    x = requests.get(url=url, headers=header)
+    if method == "get":
+        x = requests.get(url=url, headers=header, data=data)
+    else:
+        x = requests.post(url=url, headers=header, data=data)
     return x.text
 
 
@@ -104,3 +116,16 @@ def test_inventory():
     test_case = inventory_item[0]
     assert len(inventory_list) >= 15
     assert test_case["species"]["bot"] == "Sansevieria Moonshine"
+
+
+def test_new_inventory():
+    url = f"{BASE_URL}/{API_NAMESPACE}/UserInventory"
+    data = json.dumps(
+        {
+            "species_id": 1,
+        }
+    )
+    response = get_response("UserInventory", data, "post")
+
+    print(response)
+    assert 1 == 1
