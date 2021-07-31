@@ -183,6 +183,20 @@ class UserHistory(Resource):
 
         return response
 
+    @token_required
+    @ns.doc("user_history_add")
+    def post(self, *args, **kwargs):
+        user_id = kwargs["current_user"].site_user_id
+        data = request.get_json()
+        print(data)
+        new_history = PlantHistory(
+            plant_inventory_id=data["inventory_id"], care_type_id=data["care_type_id"]
+        )
+
+        session.add(new_history)
+        session.commit()
+        return jsonify({"message": "new plant care added"})
+
 
 @ns.route("/UserInventory")
 class UserInventory(Resource):
