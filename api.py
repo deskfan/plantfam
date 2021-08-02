@@ -58,6 +58,20 @@ model_nested = api.model(
 user_fields = api.model("User", {"user_id": fields.Integer})
 
 
+def db_transact(operation, record):
+    try:
+        if operation == "add":
+            session.add(record)
+        elif operation == "delete":
+            session.delete(record)
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
 @ns.route("/register")
 class Register(Resource):
     def post(self):
@@ -71,8 +85,7 @@ class Register(Resource):
             email=data["email"]
             #            admin=False,
         )
-        session.add(new_user)
-        session.commit()
+        db_transact("add", new_user)
 
         return jsonify({"message": "registered successfully"})
 
@@ -190,11 +203,10 @@ class UserHistory(Resource):
         data = request.get_json()
         print(data)
         new_history = PlantHistory(
-            plant_inventory_id=data["inventory_id"], care_type_id=data["care_type_id"]
+            plant_inventory_id=data["inventory_id"],
+            plant_care_type_id=data["care_type_id"],
         )
-
-        session.add(new_history)
-        session.commit()
+        db_transact("add", new_history)
         return jsonify({"message": "new plant care added"})
 
 
@@ -220,8 +232,7 @@ class UserInventory(Resource):
             plant_species_id=data["species_id"], site_user_id=user_id
         )
 
-        session.add(new_inventory)
-        session.commit()
+        db_transact("add", new_inventory)
         return jsonify({"message": "new inventory added"})
 
 
