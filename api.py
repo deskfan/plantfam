@@ -1,4 +1,5 @@
 import datetime
+import os
 import uuid
 from functools import wraps
 
@@ -11,7 +12,11 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
-from credentials import CONN_STR, JWT_ALGORITHMS, SECRET_KEY
+
+SECRET_KEY = os.environ["SECRET_KEY"]
+CONN_STR = os.environ["DATABASE_URL"]
+JWT_ALGORITHMS = [os.environ["JWT_ALGORITHM"]]
+
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
