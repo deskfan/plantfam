@@ -7,31 +7,27 @@ import requests
 from werkzeug.security import generate_password_hash
 
 try:
-    from .testvars import (API_NAMESPACE, BASE_URL, JWT_ALGORITHMS,
-                           PASSWORD_HASH_METHOD, SECRET_KEY, TEST_PASSWORD,
-                           TEST_USERNAME)
-except:
-    from testvars import (API_NAMESPACE, BASE_URL, JWT_ALGORITHMS,
-                          PASSWORD_HASH_METHOD, SECRET_KEY, TEST_PASSWORD,
-                          TEST_USERNAME)
-
-token_held = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJiYzhiMDE2OS02NzExLTRlOGMtODQwNi1lMGM1MTMzZDM0OGUiLCJleHAiOjE2Mjc3ODA1OTZ9.cpnGFq_ccJ-z5w9XDjRTlNruj5orQ6tS-oa6PrxoUgw"
-
-
-def test_register_new_user():
-    url = f"{BASE_URL}/{API_NAMESPACE}/register"
-    data = json.dumps(
-        {
-            "username": "test_user_name",
-            "password": "test_pword",
-            "email": "moi@email.com",
-        }
+    from .testvars import (
+        API_NAMESPACE,
+        BASE_URL,
+        JWT_ALGORITHMS,
+        PASSWORD_HASH_METHOD,
+        SECRET_KEY,
+        TEST_PASSWORD,
+        TEST_USERNAME,
     )
-    header = {"Content-Type": "application/json"}
-    response = requests.post(url=url, headers=header, data=data)
+except:
+    from testvars import (
+        API_NAMESPACE,
+        BASE_URL,
+        JWT_ALGORITHMS,
+        PASSWORD_HASH_METHOD,
+        SECRET_KEY,
+        TEST_PASSWORD,
+        TEST_USERNAME,
+    )
 
-    assert response.status_code == 200
-    assert json.loads(response.text)["message"] == "registered successfully"
+token_held = ""
 
 
 def get_token():
@@ -39,7 +35,6 @@ def get_token():
     r = requests.get(url=url, auth=(TEST_USERNAME, TEST_PASSWORD))
     print("token", r.text)
     data = json.loads(r.text)
-
     token = data["token"]
     return token
 
@@ -61,13 +56,7 @@ def get_response(endpoint, data=None, method="get"):
     url = f"{BASE_URL}/{API_NAMESPACE}/{endpoint}"
 
     response = make_request(url, method, header, data)
-    if json.loads(response.text)["message"] == "token is invalid":
-        print("bad token")
-        token_held = get_token()
-        header["x-access-tokens"] = token_held
-        return make_request(url, method, header, data).text
-    else:
-        return response.text
+    return response.text
 
 
 def make_request(url, method, header, data):
@@ -76,6 +65,22 @@ def make_request(url, method, header, data):
     else:
         x = requests.post(url=url, headers=header, data=data)
     return x
+
+
+def test_register_new_user():
+    url = f"{BASE_URL}/{API_NAMESPACE}/register"
+    data = json.dumps(
+        {
+            "username": "test_user_name",
+            "password": "test_pword",
+            "email": "moi@email.com",
+        }
+    )
+    header = {"Content-Type": "application/json"}
+    response = requests.post(url=url, headers=header, data=data)
+
+    assert response.status_code == 200
+    assert json.loads(response.text)["message"] == "registered successfully"
 
 
 def test_care_types():
@@ -111,7 +116,6 @@ def test_history():
 def test_inventory():
     response = get_response("UserInventory")
     inventory_list = json.loads(response)
-    #    print(inventory_list)
     inventory_item = [care for care in inventory_list if care["inventory_id"] == 31]
     test_case = inventory_item[0]
     assert len(inventory_list) >= 15
@@ -119,7 +123,6 @@ def test_inventory():
 
 
 def test_new_inventory():
-    url = f"{BASE_URL}/{API_NAMESPACE}/UserInventory"
     data = json.dumps(
         {
             "species_id": 1,
@@ -132,10 +135,8 @@ def test_new_inventory():
 
 
 def test_new_care():
-    url = f"{BASE_URL}/{API_NAMESPACE}/UserHistory"
     data = json.dumps({"inventory_id": 1, "care_type_id": 11})
     response = get_response("UserHistory", data, "post")
     text = json.loads(response)
     print(text)
     assert text["message"] == "new plant care added"
-

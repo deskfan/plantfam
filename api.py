@@ -29,6 +29,7 @@ engine = create_engine(CONN_STR)  # , echo=True)
 Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
+session.execute("SET search_path TO plantfam")
 
 model_care = api.model(
     "CareTypes",
@@ -157,7 +158,7 @@ class CareTypes(Resource):
     @ns.marshal_with(model_care)
     @ns.doc("care_types")
     def get(self, *args, **kwargs):
-        x = kwargs["current_user"].public_id
+        #        x = kwargs["current_user"].public_id
         query = session.query(PlantCareType)
         response = [row.to_json() for row in query]
         return response
