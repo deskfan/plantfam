@@ -11,7 +11,15 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from classes import PlantCareType, PlantHistory, PlantInventory, PlantSpecies, Users
+from classes import (
+    PlantCareType,
+    PlantHistory,
+    PlantInventory,
+    PlantSpecies,
+    Questions,
+    Responses,
+    Users,
+)
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 CONN_STR = os.environ["DATABASE_URL"]
@@ -24,17 +32,22 @@ app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 api = Api(
     app,
     version="1.0",
-    title="PlantFam API",
-    description="Logging plant care events for plant inventory",
+    title="KatieProjects API",
+    description="All The Stuff I Need",
 )
 
 ns = api.namespace("plantfam", description="Plant care operations")
+ns_quiz = api.namespace("quiz", description="Quiz questions for kids")
+
 
 engine = create_engine(CONN_STR)  # , echo=True)
 Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
 session.execute("SET search_path TO plantfam")
+session_quiz = Session()
+session_quiz.execute("SET search_path TO games")
+
 
 model_care = api.model(
     "CareTypes",
@@ -64,7 +77,7 @@ model_nested = api.model(
 user_fields = api.model("User", {"user_id": fields.Integer})
 
 
-def db_transact(operation, record):
+def db_transact(operation, record, session=session):
     try:
         if operation == "add":
             session.add(record)
@@ -159,7 +172,7 @@ class Login(Resource):
 
 @ns.route("/CareTypes")
 class CareTypes(Resource):
-    @token_required
+    #    @token_required
     @ns.marshal_with(model_care)
     @ns.doc("care_types")
     def get(self, *args, **kwargs):
@@ -240,6 +253,17 @@ class UserInventory(Resource):
 
         db_transact("add", new_inventory)
         return jsonify({"message": "new inventory added"})
+
+
+@ns_quiz.route("/Questions")
+class Questions(Resource):
+    #    @token_required
+    @ns.doc("questions")
+    def get(self, *args, **kwargs):
+        #        x = kwargs["current_user"].public_id
+        query = session_quiz.query(Responses)
+        response = [row.to_json() for row in query]
+        return response
 
 
 if __name__ == "__main__":

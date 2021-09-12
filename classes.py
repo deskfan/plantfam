@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Date, DateTime
@@ -106,4 +106,33 @@ class PlantHistory(Base):
             "history_id": self.plant_history_id,
             "species": self.inventory.to_json(),
             "care": self.care.to_json(),
+        }
+
+
+class Questions(Base):
+    __tablename__ = "questions"
+    id = Column(Integer, primary_key=True)
+    question = Column(String)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "question": self.question,
+        }
+
+
+class Responses(Base):
+    __tablename__ = "responses"
+    id = Column(Integer, primary_key=True)
+    response_option = Column(String)
+    correct_answer = Column(Boolean)
+    question_id = Column(Integer, ForeignKey("questions.id"))
+    question = relationship("Questions")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "response_option": self.response_option,
+            "correct_answer": self.correct_answer,
+            "question": self.question.to_json(),
         }
